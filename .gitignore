@@ -1,0 +1,47 @@
+node_modules/
+dist/
+build/
+.cache/
+.env*
+!.env.example
+.vite/
+vite.config.*.timestamp-*
+*.tsbuildinfo
+*-debug.log*
+logs/
+*.log
+.claude-replay.*
+.tmp-*
+/.figma/design-context/
+
+# Platform-managed agentplat state
+/.plugins/
+/.opencode-skills/
+
+# OS artifacts
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Editor / IDE configs
+.vscode/settings.json
+.vscode/*.code-snippets
+.idea/
+*.suo
+*.user
+*.swp
+*.swo
+*~
+
+# Sensitive / secrets — never commit these
+*.pem
+*.key
+*.crt
+*.p12
+secrets/
+.secrets/
