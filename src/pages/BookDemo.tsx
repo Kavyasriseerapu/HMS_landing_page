@@ -11,6 +11,7 @@ type FormState = {
   location: string;
   bedCount: string;
   designation: string;
+  version: string;
   interests: string[];
   preferredDate: string;
   preferredTime: string;
@@ -19,10 +20,7 @@ type FormState = {
 
 type FormErrors = Partial<Record<keyof FormState, string>>;
 
-const interestOptions = [
-  'Complete HospAI', 'Emergency', 'Inpatient & Beds', 'Critical Care', 'Surgery / OT', 'Outpatient',
-  'Laboratory', 'Radiology', 'Pharmacy', 'Billing & Insurance', 'Analytics', 'Doctor & Nurse workspaces', 'AI Intelligence Hub',
-];
+const versionOptions = ['Basic version', 'Standard version', 'Enterprise version'];
 
 const bedOptions = ['Under 50', '50–100', '101–250', '251–500', '500+'];
 
@@ -46,12 +44,21 @@ const apiUrl = !rawApiUrl || rawApiUrl.endsWith(':') ? 'http://localhost:4000' :
 
 export default function BookDemo() {
   const navigate = useNavigate();
+
+  const initialVersion = (() => {
+    const p = new URLSearchParams(window.location.search);
+    const param = p.get('version') || p.get('interest');
+    if (param) {
+      const match = versionOptions.find((opt) => opt.toLowerCase().includes(param.toLowerCase()));
+      if (match) return match;
+    }
+    return 'Standard version';
+  })();
+
   const [form, setForm] = useState<FormState>({
     fullName: '', workEmail: '', phone: '', hospitalName: '', location: '', bedCount: '', designation: '',
-    interests: (() => {
-      const i = new URLSearchParams(window.location.search).get('interest');
-      return i && interestOptions.includes(i) ? [i] : [];
-    })(),
+    version: initialVersion,
+    interests: [initialVersion],
     preferredDate: '', preferredTime: '', message: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
@@ -71,8 +78,10 @@ export default function BookDemo() {
     if (errors[field]) setErrors((e) => { const next = { ...e }; delete next[field]; return next; });
   };
 
-  const toggleInterest = (opt: string) =>
-    setField('interests', form.interests.includes(opt) ? form.interests.filter((i) => i !== opt) : [...form.interests, opt]);
+  const selectVersion = (opt: string) => {
+    setForm((f) => ({ ...f, version: opt, interests: [opt] }));
+    if (submitError) setSubmitError(null);
+  };
 
   const validate = () => {
     const e: FormErrors = {};
@@ -154,7 +163,7 @@ export default function BookDemo() {
                   ['Request ID', <span className="font-mono">{requestId}</span>],
                   ['Hospital', form.hospitalName],
                   ['Requested slot', `${when} · ${form.preferredTime}`],
-                  ['Focus areas', form.interests.length ? form.interests.join(', ') : 'Complete HospAI'],
+                  ['Focus version', form.version || (form.interests.length ? form.interests.join(', ') : 'Standard version')],
                 ].map(([k, v]) => (
                   <div key={k as string} className="bg-white px-5 py-4">
                     <dt className="text-[12px] font-semibold uppercase tracking-[0.1em] text-slate-400">{k}</dt>
@@ -262,10 +271,17 @@ export default function BookDemo() {
               </div>
             </Section>
 
-            <Section n={3} title="What should we focus on?" hint="Pick as many as you like">
-              <div className="sm:col-span-2 flex flex-wrap gap-2">
-                {interestOptions.map((opt) => (
-                  <Chip key={opt} on={form.interests.includes(opt)} onClick={() => toggleInterest(opt)} check>{opt}</Chip>
+            <Section n={3} title="What should we focus on?" hint="Choose the version you would like to explore">
+              <div className="sm:col-span-2 flex flex-wrap gap-2.5">
+                {versionOptions.map((opt) => (
+                  <Chip
+                    key={opt}
+                    on={form.version === opt || form.interests.includes(opt)}
+                    onClick={() => selectVersion(opt)}
+                    check
+                  >
+                    {opt}
+                  </Chip>
                 ))}
               </div>
             </Section>

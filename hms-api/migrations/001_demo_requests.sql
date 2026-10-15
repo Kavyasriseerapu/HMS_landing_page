@@ -1,4 +1,4 @@
-﻿-- Migration 001: Demo Requests Table & Limited Application Role
+-- Migration 001: Demo Requests Table & Limited Application Role
 
 CREATE TABLE IF NOT EXISTS demo_requests (
   id BIGSERIAL PRIMARY KEY,
@@ -12,6 +12,7 @@ CREATE TABLE IF NOT EXISTS demo_requests (
   location TEXT,
   bed_count TEXT,
   message TEXT,
+  version TEXT,
   interests TEXT[] NOT NULL DEFAULT '{}',
   preferred_date DATE NOT NULL,
   status TEXT NOT NULL DEFAULT 'new' CHECK (status IN ('new', 'contacted', 'scheduled', 'completed', 'cancelled')),

@@ -1,4 +1,4 @@
-﻿import express, { type Request, type Response, type NextFunction } from 'express';
+import express, { type Request, type Response, type NextFunction } from 'express';
 import helmet from 'helmet';
 import cors from 'cors';
 import rateLimit from 'express-rate-limit';
@@ -96,6 +96,7 @@ const demoRequestSchema = z.object({
   location: z.string().trim().max(255).optional().nullable(),
   bedCount: z.string().trim().max(50).optional().nullable(),
   message: z.string().trim().max(2000).optional().nullable(),
+  version: z.string().trim().max(100).optional().nullable(),
   interests: z.array(z.string().trim().max(100)).default([]),
 });
 
@@ -139,9 +140,16 @@ app.post('/api/demo-requests', demoRequestRateLimiter, async (req: Request, res:
     location,
     bedCount,
     message,
+    version,
     interests,
     preferredDate,
   } = parseResult.data;
+
+  // Resolve version: use version or first element of interests
+  const resolvedVersion = version || (interests && interests.length > 0 ? interests[0] : null);
+  const resolvedInterests = (interests && interests.length > 0)
+    ? interests
+    : (resolvedVersion ? [resolvedVersion] : []);
 
   try {
     const insertQuery = `
@@ -155,10 +163,11 @@ app.post('/api/demo-requests', demoRequestRateLimiter, async (req: Request, res:
         location,
         bed_count,
         message,
+        version,
         interests,
         preferred_date
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
       RETURNING request_id;
     `;
 
@@ -172,7 +181,8 @@ app.post('/api/demo-requests', demoRequestRateLimiter, async (req: Request, res:
       location || null,
       bedCount || null,
       message || null,
-      interests || [],
+      resolvedVersion,
+      resolvedInterests,
       preferredDate,
     ];
 
@@ -209,6 +219,7 @@ app.get('/api/demo-requests', requireCommandCenterAuth, async (req: Request, res
         location,
         bed_count,
         message,
+        version,
         interests,
         preferred_date,
         status,
@@ -275,6 +286,7 @@ app.patch('/api/demo-requests/:requestId', requireCommandCenterAuth, async (req:
         location,
         bed_count,
         message,
+        version,
         interests,
         preferred_date,
         status,
