@@ -24,7 +24,7 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: process.env.VITE_DEV_SERVER_HOST || '0.0.0.0',
-      port: parseInt(process.env.PORT || '8443'),
+      port: parseInt(process.env.PORT || '7443'),
       strictPort: true,
       // Allow Cloudflare quick-tunnel URLs for sharing demos.
       allowedHosts: ['.trycloudflare.com'],
