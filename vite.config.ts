@@ -24,10 +24,16 @@ export default defineConfig(({ mode }) => {
     },
     server: {
       host: process.env.VITE_DEV_SERVER_HOST || '0.0.0.0',
-      port: parseInt(process.env.PORT || '4000'),
+      port: parseInt(process.env.PORT || '8443'),
       strictPort: true,
       // Allow Cloudflare quick-tunnel URLs for sharing demos.
       allowedHosts: ['.trycloudflare.com'],
+      proxy: {
+        '/api': {
+          target: 'http://localhost:4000',
+          changeOrigin: true,
+        },
+      },
     },
     preview: {
       host: process.env.VITE_DEV_SERVER_HOST || '0.0.0.0',

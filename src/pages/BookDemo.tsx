@@ -38,11 +38,11 @@ const agenda = [
   ['5 min', 'Rollout plan and next steps'],
 ];
 
-function generateDemoId() {
-  return `HOSPAI-DEMO-${Math.floor(10000 + Math.random() * 90000)}`;
-}
 const validateEmail = (v: string) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v);
 const validatePhone = (v: string) => /^[\d\s+\-()]{7,18}$/.test(v);
+
+const rawApiUrl = (import.meta.env.VITE_API_URL || '').trim().replace(/\/+$/, '');
+const apiUrl = !rawApiUrl || rawApiUrl.endsWith(':') ? 'http://localhost:4000' : rawApiUrl;
 
 export default function BookDemo() {
   const navigate = useNavigate();
@@ -56,7 +56,8 @@ export default function BookDemo() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [submitted, setSubmitted] = useState(false);
-  const [demoId] = useState(generateDemoId);
+  const [requestId, setRequestId] = useState<string>('');
+  const [submitError, setSubmitError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -66,6 +67,7 @@ export default function BookDemo() {
 
   const setField = (field: keyof FormState, value: string | string[]) => {
     setForm((f) => ({ ...f, [field]: value }));
+    if (submitError) setSubmitError(null);
     if (errors[field]) setErrors((e) => { const next = { ...e }; delete next[field]; return next; });
   };
 
@@ -92,11 +94,41 @@ export default function BookDemo() {
     e.preventDefault();
     if (!validate()) return;
     setLoading(true);
-    // TODO: send `form` to your CRM / email endpoint. Currently simulated.
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    setSubmitted(true);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setSubmitError(null);
+
+    try {
+      const response = await fetch(`${apiUrl}/api/demo-requests`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(form),
+      });
+
+      const data = await response.json().catch(() => null);
+
+      if (!response.ok) {
+        const errorMsg =
+          data?.error ||
+          (data?.details ? Object.values(data.details).flat().join('. ') : null) ||
+          'Unable to submit your demo request. Please try again.';
+        setSubmitError(errorMsg);
+        setLoading(false);
+        return;
+      }
+
+      if (data?.requestId) {
+        setRequestId(data.requestId);
+        setSubmitted(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      } else {
+        setSubmitError('Unexpected response from server. Please try again.');
+      }
+    } catch {
+      setSubmitError('Unable to connect to the demo booking server. Please check your network and try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const today = new Date().toISOString().split('T')[0];
@@ -119,7 +151,7 @@ export default function BookDemo() {
 
               <dl className="mt-8 grid sm:grid-cols-2 gap-px rounded-2xl overflow-hidden border border-slate-200 bg-slate-200">
                 {[
-                  ['Request ID', <span className="font-mono">{demoId}</span>],
+                  ['Request ID', <span className="font-mono">{requestId}</span>],
                   ['Hospital', form.hospitalName],
                   ['Requested slot', `${when} · ${form.preferredTime}`],
                   ['Focus areas', form.interests.length ? form.interests.join(', ') : 'Complete HospAI'],
@@ -275,28 +307,35 @@ export default function BookDemo() {
               </div>
             </Section>
 
-            <div className="px-6 sm:px-8 py-6 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row sm:items-center gap-4">
-              <p className="flex-1 text-[13px] text-slate-500 leading-relaxed">
-                By submitting, you agree to our <Link to="/privacy" className="text-brand-600 font-medium hover:underline">Privacy Policy</Link> and{' '}
-                <Link to="/terms" className="text-brand-600 font-medium hover:underline">Terms of Service</Link>. Please don't include patient information.
-              </p>
-              <button
-                type="submit"
-                disabled={loading}
-                className="inline-flex items-center justify-center gap-2 h-12 px-7 rounded-lg bg-brand-600 text-white text-[15px] font-semibold shadow-lg shadow-brand-600/25 hover:bg-brand-700 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
-              >
-                {loading ? (
-                  <>
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
-                      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
-                      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
-                    </svg>
-                    Sending request…
-                  </>
-                ) : (
-                  <>Request my demo <ArrowRightIcon size={16} /></>
-                )}
-              </button>
+            <div className="px-6 sm:px-8 py-6 bg-slate-50 border-t border-slate-200 flex flex-col gap-4">
+              {submitError && (
+                <div className="w-full">
+                  <ErrorText>{submitError}</ErrorText>
+                </div>
+              )}
+              <div className="flex flex-col sm:flex-row sm:items-center gap-4">
+                <p className="flex-1 text-[13px] text-slate-500 leading-relaxed">
+                  By submitting, you agree to our <Link to="/privacy" className="text-brand-600 font-medium hover:underline">Privacy Policy</Link> and{' '}
+                  <Link to="/terms" className="text-brand-600 font-medium hover:underline">Terms of Service</Link>. Please don't include patient information.
+                </p>
+                <button
+                  type="submit"
+                  disabled={loading}
+                  className="inline-flex items-center justify-center gap-2 h-12 px-7 rounded-lg bg-brand-600 text-white text-[15px] font-semibold shadow-lg shadow-brand-600/25 hover:bg-brand-700 transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+                >
+                  {loading ? (
+                    <>
+                      <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24" fill="none">
+                        <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeOpacity="0.25" />
+                        <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+                      </svg>
+                      Sending request…
+                    </>
+                  ) : (
+                    <>Request my demo <ArrowRightIcon size={16} /></>
+                  )}
+                </button>
+              </div>
             </div>
           </form>
         </div>
