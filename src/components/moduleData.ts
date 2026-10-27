@@ -1,5 +1,5 @@
 import {
-  ActivityIcon, BedIcon, BodyIcon, BriefcaseIcon, BrainIcon, CalendarIcon, CardIcon, ClipboardIcon, ClockIcon, FileTextIcon,
+  ActivityIcon, BedIcon, BodyIcon, BriefcaseIcon, BrainIcon, CalendarIcon, CardIcon, ClipboardIcon, ClockIcon, EyeIcon, FileTextIcon,
   FlaskIcon, GridIcon, HeartPulseIcon, MicIcon, PillIcon, ScalpelIcon, ScanIcon, SearchIcon, SettingsIcon, ShieldIcon,
   SparkIcon, SplitIcon, StarIcon, StethoscopeIcon, TargetIcon, TrendIcon, UserIcon, type IconType,
 } from './icons';
@@ -40,6 +40,7 @@ export const moduleGroups: ModuleGroup[] = [
       { key: 'lab', label: 'Laboratory', icon: FlaskIcon, desc: 'Pay-first lab billing, sample tracking, result entry, pathologist approval and panic values.', features: ['Two-step billing', 'Barcodes', 'Panic alerts'] },
       { key: 'radiology', label: 'Radiology & PACS', icon: TargetIcon, desc: 'X-Ray, CT, MRI, ultrasound and PET orders, PACS links and structured reports.', features: ['DICOM PACS', 'Structured reports', 'Critical findings'] },
       { key: 'pharmacy', label: 'Pharmacy & Dispensary', icon: PillIcon, desc: 'Verification queue, stock ledger, purchase orders, GRN, returns and expiry tracking.', features: ['Verification', 'PO & GRN', 'Expiry alerts'] },
+      { key: 'patient360', label: 'Patient 360', icon: EyeIcon, desc: 'A single, chronological view of every patient interaction — visits, vitals, labs, imaging, prescriptions, billing and clinical notes across all departments.', features: ['Full timeline', 'Cross-dept view', 'Instant context'] },
     ],
   },
   {

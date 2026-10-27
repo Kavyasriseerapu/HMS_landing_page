@@ -272,17 +272,76 @@ export default function BookDemo() {
             </Section>
 
             <Section n={3} title="What should we focus on?" hint="Choose the version you would like to explore">
-              <div className="sm:col-span-2 flex flex-wrap gap-2.5">
-                {versionOptions.map((opt) => (
+              <div className="sm:col-span-2 space-y-4">
+                {/* Basic — simple chip */}
+                <div className="flex items-center gap-2">
                   <Chip
-                    key={opt}
-                    on={form.version === opt || form.interests.includes(opt)}
-                    onClick={() => selectVersion(opt)}
+                    on={form.version === 'Basic version' || form.interests.includes('Basic version')}
+                    onClick={() => selectVersion('Basic version')}
                     check
                   >
-                    {opt}
+                    Basic version
                   </Chip>
-                ))}
+                  <span className="text-[13px] text-slate-400">Core modules for smaller facilities</span>
+                </div>
+
+                {/* Standard & Enterprise — rich cards */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    {
+                      opt: 'Standard version',
+                      badge: 'Most popular',
+                      badgeColor: 'bg-brand-600 text-white',
+                      borderActive: 'border-brand-500 ring-2 ring-brand-500/20',
+                      borderIdle: 'border-slate-200 hover:border-brand-300',
+                      iconBg: 'bg-brand-50 text-brand-600',
+                      features: ['All Clinical & Nursing modules', 'Laboratory & Radiology', 'Billing & Payments', 'Patient 360 timeline', 'Standard reports hub'],
+                    },
+                    {
+                      opt: 'Enterprise version',
+                      badge: 'Full suite',
+                      badgeColor: 'bg-ink-900 text-white',
+                      borderActive: 'border-ink-700 ring-2 ring-ink-900/15',
+                      borderIdle: 'border-slate-200 hover:border-slate-400',
+                      iconBg: 'bg-slate-100 text-slate-700',
+                      features: ['Everything in Standard', 'HospAI suite (Voice, OCR, Symptom AI)', 'Insurance & TPA workflow', 'HRMS & credentialing', 'Advanced analytics & NLQ'],
+                    },
+                  ].map(({ opt, badge, badgeColor, borderActive, borderIdle, iconBg, features }) => {
+                    const on = form.version === opt || form.interests.includes(opt);
+                    return (
+                      <button
+                        key={opt}
+                        type="button"
+                        aria-pressed={on}
+                        onClick={() => selectVersion(opt)}
+                        className={`relative text-left rounded-2xl border p-4 transition-all duration-200 ${on ? borderActive + ' bg-white shadow-md' : borderIdle + ' bg-white'}`}
+                      >
+                        {/* Badge */}
+                        <span className={`absolute -top-2.5 left-4 inline-flex items-center h-5 px-2 rounded-full text-[10.5px] font-bold tracking-wide ${badgeColor}`}>
+                          {badge}
+                        </span>
+
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="font-display text-[15px] font-bold text-slate-900">{opt}</span>
+                          <span className={`h-5 w-5 rounded-full border-2 flex items-center justify-center transition-all ${on ? 'border-brand-600 bg-brand-600' : 'border-slate-300'}`}>
+                            {on && <CheckIcon size={10} strokeWidth={3} />}
+                          </span>
+                        </div>
+
+                        <ul className="mt-3 space-y-1.5">
+                          {features.map((f) => (
+                            <li key={f} className="flex items-center gap-2 text-[12.5px] text-slate-600">
+                              <span className={`h-4 w-4 rounded flex items-center justify-center shrink-0 ${iconBg}`}>
+                                <CheckIcon size={9} strokeWidth={3} />
+                              </span>
+                              {f}
+                            </li>
+                          ))}
+                        </ul>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             </Section>
 
